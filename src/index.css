@@ -1,0 +1,58 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html,body{padding:0; margin:0;}
+#app {
+  font-family: Avenir, Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-align: center;
+  color: #2c3e50;
+}
+h1{color:#43b984;}
+table{width:100%; border-collapse:collapse;}
+.wrap{width:100%;}
+.container{width:800px; margin:0 auto;}
+a{text-decoration:none;}
+.btn{padding:10px; background:#34445c; color:#fff;}
+
+nav {
+  padding: 30px;
+}
+
+nav a {
+  font-weight: bold;
+  color: #2c3e50;
+}
+
+nav a.router-link-exact-active {
+  color: #42b983;
+}
+
+
+
+
+a{text-decoration:none; color:#333;}
+
+
+	.searchWrap{border:1px solid #888; border-radius:5px; text-align:center; padding:20px 0; margin-bottom:10px;}
+	.searchWrap input{width:60%; height:36px; border-radius:3px; padding:0 10px; border:1px solid #888;}
+	.searchWrap .btnSearch{display:inline-block; margin-left:10px;}
+	
+	.currentWrap{border:0p;text-align:center; padding:0 0 10px 0;}
+	.tblCurrent{border:1px solid #888;}
+	.tblCurrent th, .tblCurrent td{border:1px solid #eee;}
+	
+	.tbList {width:100%;}
+	.tbList th{border-top:1px solid #888;}
+	.tbList th, .tbList td{border-bottom:1px solid #eee;border-right:1px solid #eee; padding:5px 0;height:18px;}
+	.tbList td.txt_left{padding-left:10px; text-align:left}
+	.btnRightWrap{text-align:right; margin:10px 0 0 0;}
+	
+	.tbAdd{border-top:1px solid #888;}
+	.tbAdd th, .tbAdd td{border-bottom:1px solid #eee; padding:5px 0;}
+	.tbAdd td{padding:10px 10px; box-sizing:border-box;}
+	.tbAdd td input{width:20%; min-height:30px; box-sizing:border-box; padding:0 10px;}
+	.tbAdd td textarea{width:100%; min-height:300px; padding:10px; box-sizing:border-box;}
+	.tbAdd select{border:1px solid #888;width:50%; min-width:100px;}

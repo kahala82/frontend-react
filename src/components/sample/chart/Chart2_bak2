@@ -1,0 +1,433 @@
+import React, {useRef, useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
+import axios from 'axios';
+import * as echarts from 'echarts'
+
+//import ReactECharts from 'echarts-for-react';
+ 
+
+var optionDataList = {categoryData:[], values:[]};
+var chk = 0;
+//const {optionList} = this.state;
+const upColor = '#ec0000';
+const upBorderColor = '#8A0000';
+const downColor = '#0041da';
+const downBorderColor = '#0e40b5';
+// Each item: open，close，lowest，highest
+
+let data0 = {categoryData: [], values: []};
+if (optionDataList){
+	//data2 = splitData(optionList);
+	
+	data0 = splitData(optionDataList);
+}
+
+function splitData(rawData) {
+  const categoryData = [];
+  const values = [];
+  for (var i = 0; i < rawData.length; i++) {
+    categoryData.push(rawData[i].splice(0, 1)[0]);
+    values.push(rawData[i]);
+  }
+  return {
+    categoryData: categoryData,
+    values: values
+  };
+}
+function calculateMA(dayCount) {
+  var result = [];
+  for (var i = 0, len = data0.values.length; i < len; i++) {
+    if (i < dayCount) {
+      result.push('-');
+      continue;
+    }
+    var sum = 0;
+    for (var j = 0; j < dayCount; j++) {
+      sum += +data0.values[i - j][1];
+    }
+    result.push(sum / dayCount);
+  }
+  return result;
+}
+
+function Chart2() {
+	const chartRef = useRef(null);
+	//const selectRef = useRef(null);
+	const [ItemList, setItemList] = useState({});
+	let [options, setOptions] = useState({
+		title: {
+			text: '종합지수',
+			left: 0
+		},
+		tooltip: {
+			trigger: 'axis',
+			axisPointer: {
+				type: 'cross'
+			}
+		},
+		legend: {
+			data: ['일K', 'MA5', 'MA10', 'MA20', 'MA30']
+		},
+		grid: {
+			left: '10%',
+			right: '10%',
+			bottom: '15%'
+		},
+		xAxis: {
+			type: 'category',
+			data: data0.categoryData,
+			boundaryGap: false,
+			axisLine: { onZero: false },
+			splitLine: { show: false },
+			min: 'dataMin',
+			max: 'dataMax'
+		},
+		yAxis: {
+			scale: true,
+			splitArea: {
+				show: true
+			}
+		},
+		dataZoom: [
+			{
+				type: 'inside',
+				start: 0,
+				end: 100
+			},
+			{
+				show: true,
+				type: 'slider',
+				top: '90%',
+				start: 50,
+				end: 100
+			}
+		],
+		series: [
+			{
+				name: '일K',
+				type: 'candlestick',
+				data: data0.values,
+				itemStyle: {
+					color: upColor,
+					color0: downColor,
+					borderColor: upBorderColor,
+					borderColor0: downBorderColor
+				},
+				markPoint: {
+					label: {
+						formatter: function (param) {
+							return param != null ? Math.round(param.value) + '' : '';
+						}
+					},
+					data: [
+						{
+							name: 'Mark',
+							coord: ['2013/5/31', 2300],
+							value: 2300,
+							itemStyle: {
+								color: 'rgb(41,60,85)'
+							}
+						},
+						{
+							name: 'highest value',
+							type: 'max',
+							valueDim: 'highest'
+						},
+						{
+							name: 'lowest value',
+							type: 'min',
+							valueDim: 'lowest'
+						},
+						{
+							name: 'average value on close',
+							type: 'average',
+							valueDim: 'close'
+						}
+					],
+					tooltip: {
+						formatter: function (param) {
+							return param.name + '<br>' + (param.data.coord || '');
+						}
+					}
+				},
+				markLine: {
+					symbol: ['none', 'none'],
+					data: [
+						[
+							{
+								name: 'from lowest to highest',
+								type: 'min',
+								valueDim: 'lowest',
+								symbol: 'circle',
+								symbolSize: 10,
+								label: {
+									show: false
+								},
+								emphasis: {
+									label: {
+										show: false
+									}
+								}
+							},
+							{
+								type: 'max',
+								valueDim: 'highest',
+								symbol: 'circle',
+								symbolSize: 10,
+								label: {
+									show: false
+								},
+								emphasis: {
+									label: {
+										show: false
+									}
+								}
+							}
+						],
+						{
+							name: 'min line on close',
+							type: 'min',
+							valueDim: 'close'
+						},
+						{
+							name: 'max line on close',
+							type: 'max',
+							valueDim: 'close'
+						}
+					]
+				}
+			},
+			{
+				name: 'MA5',
+				type: 'line',
+				data: calculateMA(5),
+				smooth: true,
+				lineStyle: {
+					opacity: 0.5
+				}
+			},
+			{
+				name: 'MA10',
+				type: 'line',
+				data: calculateMA(10),
+				smooth: true,
+				lineStyle: {
+					opacity: 0.5
+				}
+			},
+			{
+				name: 'MA20',
+				type: 'line',
+				data: calculateMA(20),
+				smooth: true,
+				lineStyle: {
+					opacity: 0.5
+				}
+			},
+			{
+				name: 'MA30',
+				type: 'line',
+				data: calculateMA(30),
+				smooth: true,
+				lineStyle: {
+					opacity: 0.5
+				}
+			}
+		]
+	});
+	
+	var timerId;
+
+	useEffect(() => {
+		getItemList();
+		
+		timerId = setTimeout(getCurrentList, 3000);
+		
+		if (chartRef.current) {
+			//const chart = echarts.init(chartRef.current);
+			//chart.setOption(options);
+	    	
+			//setTimeout(setCtOption, 3000);
+		}
+	}, [options, chartRef]);
+  
+	function setCtOption() {
+		if (chartRef.current) {
+			
+			console.log(options);
+			
+			options.series[0].data.push(270);
+			options.xAxis.data.push('Tst');
+			
+			const chart = echarts.init(chartRef.current);
+			chart.setOption(options);
+		}
+	}
+
+
+
+
+	//종목 리스트
+	function getItemList() {
+		axios.get(process.env.REACT_APP_URL+"/etc/data/stratsymbollist")
+		.then(({ data }) => {
+			setItemList(data);
+		})
+		.catch(e => {  // API 호출이 실패한 경우
+			console.error(e);  // 에러표시
+		});
+	}
+	
+	//그래프 데이터 호출
+	function getCurrentList() {
+		var currentSelect = document.getElementById("item").value;
+		var itemType = document.getElementById("winType").value;
+		var itemCnt = document.getElementById("winCnt").value;
+		
+		//this.setChartTimeout();
+		
+		
+		clearTimeout(timerId);
+		timerId = setTimeout(getCurrentList, 3000);
+		
+		if (!currentSelect){
+			return;	
+		}
+		
+		axios.get(process.env.REACT_APP_URL+"/chart/chartdata/"+currentSelect+"/"+itemType+"/"+itemCnt)
+		.then(({ data }) => {
+			console.log("data===>", data);
+			const optionData = [];
+			
+			if (data){
+				for (var i=0; i<data.length; i++){
+					var odata = data[i];
+					var temp = [];
+					temp.push(odata.CHART_NM.substring(8,10)+":"+odata.CHART_NM.substring(10,12));
+					temp.push(odata.OPEN_PRC);
+					temp.push(odata.CLOSE_PRC);
+					temp.push(odata.LOW_PRC);
+					temp.push(odata.HIGH_PRC);
+					
+					optionData.push(temp);
+				}
+			}
+			
+			
+			data0 = splitData(optionData);
+			
+			if (chartRef.current) {
+				return;
+				options.series[0].data = data0.values
+				options.xAxis.data = data0.categoryData;
+				
+				const chart = echarts.init(chartRef.current);
+				chart.setOption(options);
+			}
+			
+			/*
+			optionDataList = splitData(optionData);
+			console.log("optionDataList====>", optionDataList);
+			data0 = optionDataList;
+			
+			const chart = ReactECharts;
+			
+			
+			if (optionData.length >0 && chk == 0){
+				this.setState({ 
+					loading: true,
+					optionList: optionData
+				});
+				
+				chk++;
+			}else if(optionData.length >0 && chk == 1){
+				console.log("090-80808080");
+			    data0.categoryData.push("15:05");
+			    data0.values.push(['15:05', 2190.1, 2148.35, 2126.22, 2190.1]);
+			}else if (optionData.length >0 && chk == 2){
+			    data0.categoryData.push("15:04");
+			    data0.values.push(['15:04', 2290.1, 2348.35, 2426.22, 2590.1]);
+			}
+			*/
+			
+			
+			
+			//options.xAxis.data = optionDataList.categoryData;
+			//options.series.data = data0.values;
+			
+			//this.setState({ 
+			//	loading: true,
+			//	optionList: optionData
+			//});
+			
+		})
+		.catch(e => {  // API 호출이 실패한 경우
+			console.error(e);  // 에러표시
+			this.setState({  
+				loading: false
+			});
+		});
+		
+	}
+
+
+	return (
+			<div>
+				<div>
+					<div>
+						<Link to="/"><li>메인</li></Link>
+					</div>
+					
+					<div className="searchWrap">
+						<table className="tbAdd">
+							<colgroup>
+								<col width="20%" />
+								<col width="*" />
+							</colgroup>
+							<tbody>
+							<tr>
+								<th>종목</th>
+								<td>
+									<select id="item">
+									{ItemList.length > 0 && ItemList.map((row) => {
+										return (
+											<option value={row.sym} key={row.sym}>{row.kornm}</option>
+										);
+									})}
+									</select>
+								</td>
+								<th>분봉타입</th>
+								<td>
+								<select id="winType">
+									<option value="1">1</option>
+									<option value="2">3</option>
+									<option value="3">5</option>
+									<option value="4">10</option>
+									<option value="5">15</option>
+									<option value="6">30</option>
+									<option value="7">60</option>
+								</select>
+								</td>
+								<th>수량</th>
+								<td>
+								<input id="winCnt" type="text" defaultValue="30" maxLength="3" />
+								</td>
+							</tr>
+							</tbody>
+						</table>
+					</div>
+				</div>
+			
+				<div
+				ref={chartRef}
+				style={{
+					width: "100%",
+					height: "400px",
+				}}
+				/>
+			</div>
+
+	)		
+}
+
+export default Chart2;
